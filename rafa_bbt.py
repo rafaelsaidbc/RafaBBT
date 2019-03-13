@@ -250,9 +250,10 @@ def exibir_lista_lidos():
                     for item, valor in dicionario.items():
                         if valor == selecionado:
                             # cria a variável deletar_referencia com o caminho da key selecionada para ser deletada
-                            key_firebase = chave
+                            global key_firebase_atualizar_livro
+                            key_firebase_atualizar_livro = chave
                             pegar_referencia = referencia.child('livrosLidos').child(ano).child(
-                                key_firebase).get().items()
+                                key_firebase_atualizar_livro).get().items()
                             for indice, informacao in pegar_referencia:
                                 if indice == "anoEdicao":
                                     global autalizar_edicao_ano_lido
@@ -329,9 +330,27 @@ def exibir_lista_lidos():
             ano_edicao_atualizar_livro.grid(row=9, column=1)
 
             def inserir_atualizacao_livro_lido():
-                return ""
+                referencia_atualizar_livro = referencia.child('livrosLidos').child(ano).child(
+                    key_firebase_atualizar_livro)
 
-            btn_inserir_atualizacao = Button(janela_atualizar_livro, text='Inserir', command='')
+                # cria um dicionario com os dados do livro {id_livro, título, autor, páginas, início da leitura, fim da leitura, cidade da editora, editora, ano da edição}
+                dicionario_livro_atualizado = {
+                    'id_livro': id_livro_atualizar_livro.get(),
+                    'titulo': titulo_atualizar_livro.get(),
+                    'autor': autor_atualizar_livro.get(),
+                    'paginas': paginas_atualizar_livro.get(),
+                    'inicioLeitura': inicio_leitura_atualizar_livro.get(),
+                    'fimLeitura': fim_leitura_atualizar_livro.get(),
+                    'cidadeEditora': cidade_editora_atualizar_livro.get(),
+                    'editora': editora_atualizar_livro.get(),
+                    'anoEdicao': ano_edicao_atualizar_livro.get(),
+                }
+                # posta os dados do livro no Firebase
+                referencia_atualizar_livro.set(dicionario_livro_atualizado)
+                messagebox.showinfo('Atualização de livros lidos', 'Atualização realizada com sucesso!')
+
+            btn_inserir_atualizacao = Button(janela_atualizar_livro, text='Atualizar',
+                                             command=inserir_atualizacao_livro_lido)
             btn_inserir_atualizacao.grid(row=10, column=1)
 
         btn_atualizar_livro = Button(janela_livros_lidos, text='Atualizar',
