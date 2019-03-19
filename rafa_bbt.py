@@ -18,6 +18,7 @@ def conexao_firebase():
 # executa a função para conectar à database do Firebase
 conexao_firebase()
 
+
 # função para adicionar livros na lista de livros que quero ler
 def adicionar_livros_lista():
     # obtém a referência da database no Firebase
@@ -36,6 +37,12 @@ def adicionar_livros_lista():
     # posta os dados do livro no Firebase
     novo_post.set(dicionario_livro)
     messagebox.showinfo('Lista de livros a serem lidos', 'Livro inserido com sucesso!')
+
+    def limpar_campos():
+        titulo_livros_ler.delete(0, 'end')
+        autor_livros_ler.delete(0, 'end')
+
+    limpar_campos()
 
 
 #função da janela de cadastro dos livros que quero ler
