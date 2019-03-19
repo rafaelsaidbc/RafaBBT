@@ -104,14 +104,12 @@ def deletar_livros_ler():
         dados = elemento[1]
         # para cada chave, valor do dicionário dos dados
         for chave, valor in dados.items():
-            if chave == 'autor':
-                autor = 'Autor: ' + valor
             # se a chave for igual a título
             if chave == 'titulo':
                 # armazena o título do livro na variável título
                 titulo = 'Título: ' + valor
                 # insere as informações numa lista com a formatação aqui definida
-                listbox.insert(END, titulo + ', ' + autor)
+                listbox.insert(END, titulo)
     listbox.pack()
 
     # função para deletar a opção selecionada na listbox
@@ -119,18 +117,28 @@ def deletar_livros_ler():
         # obtém a posição do item selecionado na lista
         posicao = int(listbox.curselection()[0])
         # cria a variável selecionado com o título do livro selecionado na listbox
-        selecionado = listbox.get(posicao)
+        selecionado_listbox = listbox.get(posicao)
+        selecionado = selecionado_listbox[8:]
         # cria a variável valor_editado para ficar igual ao título do livro selecionado para deletar
-        valor_editado = 'Título: ' + valor + ', ' + autor
+        valor_editado = 'Título: ' + selecionado
         # se o valor_editado for igual ao selecionado na listbox executa o bloco
-        if valor_editado == selecionado:
-            # pega a key do Firebase, que corresponde ao elemento na posição [0]
-            key_firebase = elemento[0]
+        if valor_editado == selecionado_listbox:
+            # cria um dicionario com as referencias dos livros
+            dicionario = referencia.child('livrosLer').get()
+            # faz um for para percorrer o dicionario, separando as key dos dados de titulos e autores
+            for key, valores in dicionario.items():
+                # se o título do livro (no firebase) corresponder ao título selecionado na listbox
+                if valores['titulo'] == selecionado:
+                    # cria a variável key_firebase com a key do livro selecionado
+                    key_firebase = key
             # cria a variável deletar_referencia com o caminho da key selecionada para ser deletada
             deletar_referencia = referencia.child('livrosLer').child(key_firebase)
+            print(deletar_referencia)
             # deleta a key do título do livro que foi selecionado na listbox
             deletar_referencia.delete()
+            #exibe a mensagem de confirmação da exclusão do livro
             messagebox.showinfo('Lista de livros a serem lidos', 'Livro deletado com sucesso!')
+            #fecha a janela de seleção de livros para serem deletados
             janela.destroy()
 
     btn_deletar = Button(janela, text='Deletar', command=deletar)
