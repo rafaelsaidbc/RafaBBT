@@ -1,10 +1,11 @@
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox
+from tkinter import scrolledtext
+
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
-import tkinter as tk
-from tkinter import scrolledtext
-from tkinter import messagebox
-from tkinter import *
 
 
 # função para concetar a credencial de acesso ao Firebase, utilizando os dados do arquivo json como chave de autenticação
@@ -15,6 +16,8 @@ def conexao_firebase():
     # inicializa a conexão com o Firebase, utilizando a credencial e o endereço do Firebase
     firebase_admin.initialize_app(credencial, {
         'databaseURL': 'https://bbt-rafa.firebaseio.com'})
+
+
 # executa a função para conectar à database do Firebase
 conexao_firebase()
 
@@ -28,30 +31,37 @@ def adicionar_livros_lista():
 
     # cria a instância para postar um livro no Firebase
     novo_post = postar_livro.push()
-    # cria um dicionario com os dados do livro {id_livro, título, autor, páginas, início da leitura, fim da leitura, cidade da editora, editora, ano da edição}
 
+    # cria um dicionario com os dados do livro {id_livro, título, autor, páginas, início da leitura, fim da leitura, cidade da editora, editora, ano da edição}
     dicionario_livro = {
         'titulo': titulo_livros_ler.get(),
         'autor': autor_livros_ler.get(),
     }
     # posta os dados do livro no Firebase
     novo_post.set(dicionario_livro)
+    # mostra uma mensagem confirmando a inclusão do livro na database
     messagebox.showinfo('Lista de livros a serem lidos', 'Livro inserido com sucesso!')
 
+    # função para limpar os campos
     def limpar_campos():
         titulo_livros_ler.delete(0, 'end')
         autor_livros_ler.delete(0, 'end')
 
+    # executa a função para deixar os fields limpos
     limpar_campos()
 
 
-#função da janela de cadastro dos livros que quero ler
+# função da janela de cadastro dos livros que quero ler
 def formulario_cadastro_livros_ler():
+    # cria uma instância em TopLevel, para ser acessada somente com click
     janela_livros_ler = Toplevel()
+    # define o título da janela
     janela_livros_ler.title('Cadastro de livros na lista de leitura')
+    # cria as Labels com os dados e posiciona na janela
     Label(janela_livros_ler, text='Título').grid(row=0)
     Label(janela_livros_ler, text='Autor').grid(row=1)
 
+    # define as variáveis como globais para poderem ser acessadas por outras funções
     global titulo_livros_ler
     titulo_livros_ler = Entry(janela_livros_ler)
     titulo_livros_ler.grid(row=0, column=1)
@@ -59,11 +69,12 @@ def formulario_cadastro_livros_ler():
     autor_livros_ler = Entry(janela_livros_ler)
     autor_livros_ler.grid(row=1, column=1)
 
+    # cria o botão Inserir para inserir as informações
     btn_adicionar = Button(janela_livros_ler, text='Inserir', command=adicionar_livros_lista).grid(row=9, column=1,
                                                                                                    sticky=W, pady=4)
 
 
-#função para exibir a lista de livros que quero ler
+# função para exibir a lista de livros que quero ler
 def exibir_lista_ler():
     # pega a referência na database do Firebase
     referencia = db.reference()
@@ -100,6 +111,7 @@ def deletar_livros_ler():
     janela = Toplevel()
     label = tk.Label(janela, text='Selecione o livro para deletar', font=FONTE)
     label.pack(pady=10, padx=10)
+    # cria uma listbox (uma lista com itens selecionáveis)
     listbox = Listbox(janela, selectmod=SINGLE, width=60)
     # pega a referência na database do Firebase
     referencia = db.reference()
@@ -123,13 +135,14 @@ def deletar_livros_ler():
     def deletar():
         # obtém a posição do item selecionado na lista
         posicao = int(listbox.curselection()[0])
-        # cria a variável selecionado com o título do livro selecionado na listbox
+        # cria a variável selecionado_listbox com o título do livro selecionado na listbox
         selecionado_listbox = listbox.get(posicao)
+        # cria a variável selecionado, cortando a string para obter somente o título do livro
         selecionado = selecionado_listbox[8:]
-        # cria a variável valor_editado para ficar igual ao título do livro selecionado para deletar
-        valor_editado = 'Título: ' + selecionado
-        # se o valor_editado for igual ao selecionado na listbox executa o bloco
-        if valor_editado == selecionado_listbox:
+        # cria a variável titulo_editado para ficar igual ao título do livro selecionado para deletar
+        titulo_editado = 'Título: ' + selecionado
+        # se o titulo_editado for igual ao selecionado na listbox executa o bloco
+        if titulo_editado == selecionado_listbox:
             # cria um dicionario com as referencias dos livros
             dicionario = referencia.child('livrosLer').get()
             # faz um for para percorrer o dicionario, separando as key dos dados de titulos e autores
@@ -140,25 +153,24 @@ def deletar_livros_ler():
                     key_firebase = key
             # cria a variável deletar_referencia com o caminho da key selecionada para ser deletada
             deletar_referencia = referencia.child('livrosLer').child(key_firebase)
-            print(deletar_referencia)
             # deleta a key do título do livro que foi selecionado na listbox
             deletar_referencia.delete()
-            #exibe a mensagem de confirmação da exclusão do livro
+            # exibe a mensagem de confirmação da exclusão do livro
             messagebox.showinfo('Lista de livros a serem lidos', 'Livro deletado com sucesso!')
-            #fecha a janela de seleção de livros para serem deletados
+            # fecha a janela de seleção de livros para serem deletados
             janela.destroy()
 
     btn_deletar = Button(janela, text='Deletar', command=deletar)
     btn_deletar.pack()
 
 
-#função para exibir a lista de livros que li em determinado ano
+# função para exibir a lista de livros que li em determinado ano
 def exibir_lista_lidos():
-    # Cria formulario
+    # Cria o formulario para inserção dos dados
     formulario = Toplevel()
     formulario.title = 'Escolha um ano'
 
-    # Evento On Click do botão Ok
+    # Evento On Click do botão Ok, para exibir a lista de livros no ano selecionado
     def exibir_lista():
         # pega o ano que está no spinner e converte para string
         ano = spinner.get()
@@ -176,11 +188,11 @@ def exibir_lista_lidos():
         janela_livros_lidos = Toplevel()
         # título da janela
         janela_livros_lidos.title('Livros lidos em ' + ano)
-        # cria a variável t do tipo scrolledtext para inserir os dados
+        # cria a variável t do tipo scrolledtext (que exibe uma barra de rolagem de texto) para inserir os dados
         t = scrolledtext.ScrolledText(janela_livros_lidos)
         # pega cada elemento (key) do Firebase
         for elemento in livros_lidos:
-            # pega a posição [1] do elemento (que se refere aos dados de título e autor, a posição [0] se refere à key do Firebase
+            # pega a posição [1] do elemento (que se refere aos dados de título e autor), a posição [0] se refere à key do Firebase
             dados = elemento[1]
             # para cada chave, valor do dicionário dos dados
             for chave, valor in dados.items():
@@ -202,9 +214,7 @@ def exibir_lista_lidos():
                     inicio_leitura = 'Início da leitura: ' + valor
                 if chave == 'paginas':
                     paginas = 'Páginas: ' + valor
-                # se a chave for igual a título
                 if chave == 'titulo':
-                    # armazena o título do livro na variável título
                     titulo = 'Título: ' + valor
                     # insere as informações numa lista com a formatação aqui definida
                     t.insert(END,
@@ -212,7 +222,7 @@ def exibir_lista_lidos():
         # empacota a variável t para ser exibida
         t.pack()
 
-    # Evento On Click do botão Atualizar
+    # Evento On Click do botão Atualizar, para atualizar os dados de um livro lido
     def janela_atualizar_livro_lido():
         # pega o ano que está no spinner e converte para string
         ano = spinner.get()
@@ -238,15 +248,12 @@ def exibir_lista_lidos():
             dados = elemento[1]
             # para cada chave, valor do dicionário dos dados
             for chave, valor in dados.items():
-                # se a chave for igual a título
                 if chave == 'titulo':
-                    # armazena o título do livro na variável título
                     titulo = 'Título: ' + valor
-                    # insere as informações numa lista com a formatação aqui definida
                     listbox.insert(END, titulo)
         listbox.pack()
 
-        # função para atualizar o livro selecionado
+        # função para exibir o formulário de atualização do livro selecionado
         def formulario_atualizar_livro_selecionado():
             janela_atualizar_livro = Toplevel()
             janela_atualizar_livro.title('Atualização de livro')
@@ -264,11 +271,13 @@ def exibir_lista_lidos():
                 for chave, dicionario in dados_firebase:
                     for item, valor in dicionario.items():
                         if valor == selecionado:
-                            # cria a variável deletar_referencia com o caminho da key selecionada para ser deletada
+                            # cria a variável key_firebase_atualizar_livro com o caminho da key selecionada para ser atualizada
                             global key_firebase_atualizar_livro
                             key_firebase_atualizar_livro = chave
+                            # obtém a referência (no Firebase) da key selecionada
                             pegar_referencia = referencia.child('livrosLidos').child(ano).child(
                                 key_firebase_atualizar_livro).get().items()
+                            # pega as informações do livro na key selecionado e insere no formulário de atualização, para que seja atualizado somente os campos necessários
                             for indice, informacao in pegar_referencia:
                                 if indice == "anoEdicao":
                                     global autalizar_edicao_ano_lido
@@ -298,8 +307,10 @@ def exibir_lista_lidos():
                                     global atualizar_titulo_lido
                                     atualizar_titulo_lido = informacao
 
+            # executa a função atualizar
             atualizar()
 
+            # define as labels do formulário de atualização do livro
             Label(janela_atualizar_livro, text='Ano de leitura').grid(row=0)
             Label(janela_atualizar_livro, text='id livro').grid(row=1)
             Label(janela_atualizar_livro, text='Título').grid(row=2)
@@ -311,6 +322,7 @@ def exibir_lista_lidos():
             Label(janela_atualizar_livro, text='Editora').grid(row=8)
             Label(janela_atualizar_livro, text='Ano da edição').grid(row=9)
 
+            # define as Entry do formulário com StringVar, formato permitido para as informações serem inseridas a partir dos dados recebidos do Firebase
             ano_lido_entry = StringVar(janela_atualizar_livro, value=ano)
             ano_leitura_atualizar_livro = Entry(janela_atualizar_livro, textvariable=ano_lido_entry, width=40)
             id_livro_lido_entry = StringVar(janela_atualizar_livro, value=atualizar_id_livro)
@@ -333,6 +345,7 @@ def exibir_lista_lidos():
             editora_atualizar_livro = Entry(janela_atualizar_livro, textvariable=editora_lido_entry, width=40)
             ano_edicao_lido_entry = StringVar(janela_atualizar_livro, value=autalizar_edicao_ano_lido)
             ano_edicao_atualizar_livro = Entry(janela_atualizar_livro, textvariable=ano_edicao_lido_entry, width=40)
+            # define a localização das informações no formulário/janela
             ano_leitura_atualizar_livro.grid(row=0, column=1)
             id_livro_atualizar_livro.grid(row=1, column=1)
             titulo_atualizar_livro.grid(row=2, column=1)
@@ -344,7 +357,9 @@ def exibir_lista_lidos():
             editora_atualizar_livro.grid(row=8, column=1)
             ano_edicao_atualizar_livro.grid(row=9, column=1)
 
+            # função para inserir as informações atualizadas sobre o livro no Firebase
             def inserir_atualizacao_livro_lido():
+                # define a referência como a mesma key utilizada para recuperar os dados utilizados para preenchimento das Entry
                 referencia_atualizar_livro = referencia.child('livrosLidos').child(ano).child(
                     key_firebase_atualizar_livro)
 
@@ -360,8 +375,9 @@ def exibir_lista_lidos():
                     'editora': editora_atualizar_livro.get(),
                     'anoEdicao': ano_edicao_atualizar_livro.get(),
                 }
-                # posta os dados do livro no Firebase
+                # posta os dados do livro no Firebase, na mesma key selecionada para atualização
                 referencia_atualizar_livro.set(dicionario_livro_atualizado)
+                # exibe uma mensagem de confirmação da atualização dos dados do livro
                 messagebox.showinfo('Atualização de livros lidos', 'Atualização realizada com sucesso!')
 
             btn_inserir_atualizacao = Button(janela_atualizar_livro, text='Atualizar',
@@ -372,11 +388,9 @@ def exibir_lista_lidos():
                                      command=formulario_atualizar_livro_selecionado)
         btn_atualizar_livro.pack()
 
-
-
     # Cria componentes da janela de seleção do ano para exibir os livros lidos no ano selecionado
     descricao = Label(formulario, text="Selecione um ano entre 2013 e 2019")
-    # cria um spinner, de ano de 2013 ao ano de 2019
+    # cria um spinner, do ano de 2013 ao ano de 2019
     spinner = Spinbox(formulario, from_=2013, to=2019)
     # cria um Button, com o comando exibir_lista para exibir a lista de livros no ano selecionado
     botao = Button(formulario, text="Ok", command=exibir_lista)
@@ -394,7 +408,7 @@ def exibir_lista_lidos():
     mainloop()
 
 
-#função para inserir livros lidos no Firebase
+# função para inserir livros lidos no Firebase
 def inserir_livros_lidos():
     # obtém a referência da database no Firebase
     referencia = firebase_admin.db.reference()
@@ -418,8 +432,10 @@ def inserir_livros_lidos():
     }
     # posta os dados do livro no Firebase
     novo_post.set(dicionario_livro)
+    # exibe uma mensagem confirmando que os dados foram postados com sucesso
     messagebox.showinfo('Cadastro de livros lidos', 'Livro inserido com sucesso!')
 
+    # função para limpar os campos
     def limpar_campos():
         id_livro_lido.delete(0, 'end')
         titulo_lido.delete(0, 'end')
@@ -431,10 +447,11 @@ def inserir_livros_lidos():
         editora_lido.delete(0, 'end')
         ano_edicao_lido.delete(0, 'end')
 
+    # executa a função para deixar os campos limpos
     limpar_campos()
 
 
-#função para adicionar livros lidos no Firebase
+# função para adicionar livros lidos no Firebase
 def formulario_adicionar_livros_lidos():
     janela_cadastro_livros = Toplevel()
     janela_cadastro_livros.title('Cadastro de livros lidos')
@@ -490,7 +507,6 @@ def inserir_livros_estante():
     referencia = firebase_admin.db.reference()
     # obtém a referência da child minhaBBT e armazena na variável postar_livro
     postar_livro = referencia.child('minhaBBT')
-
     # cria a instância para postar um livro no Firebase
     novo_post = postar_livro.push()
 
@@ -505,6 +521,20 @@ def inserir_livros_estante():
     }
     # posta os dados do livro no Firebase
     novo_post.set(dicionario_livro)
+    # exibe uma mensagem confirmando que os dados foram postados com sucesso
+    messagebox.showinfo('Cadastro de livros da estante', 'Livro inserido com sucesso!')
+
+    # função para limpar os campos
+    def limpar_campos():
+        titulo_estante.delete(0, 'end')
+        autor_estante.delete(0, 'end')
+        paginas_estante.delete(0, 'end')
+        cidade_editora_estante.delete(0, 'end')
+        editora_estante.delete(0, 'end')
+        ano_edicao_estante.delete(0, 'end')
+
+    # executa a função para deixar os campos limpos
+    limpar_campos()
 
 
 # função para adicionar livros da minha estante no Firebase
@@ -573,9 +603,7 @@ def exibir_lista_estante():
                 editora = 'Editora: ' + valor
             if chave == 'paginas':
                 paginas = 'Páginas: ' + valor
-            # se a chave for igual a título
             if chave == 'titulo':
-                # armazena o título do livro na variável título
                 titulo = 'Título: ' + valor
                 # insere as informações numa lista com a formatação aqui definida
                 t.insert(END,
@@ -584,42 +612,43 @@ def exibir_lista_estante():
     t.pack()
 
 
-#define a fonte que será usada nos botões das páginas
+# define a fonte que será usada nos botões das páginas
 FONTE = ("Verdana", 12)
 
 
-#classe principal do programa
+# classe principal do programa
 class BbtRafa(tk.Tk):
-    #cria a inicialização da janela principal
+    # cria a inicialização da janela principal
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        #cria o container para colocar os widgets
+        # cria o container para colocar os widgets
         container = tk.Frame(self)
 
-        #localização do container
+        # localização do container
         container.pack(side='top', fill='both', expand=True)
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
-        #cria um dicionário vazio para colocar os frames
-        self.frames={}
+        # cria um dicionário vazio para colocar os frames
+        self.frames = {}
 
-        #para cada Frame das janelas do programa
+        # para cada Frame das janelas do programa
         for F in (PaginaPrincipal, PaginaListaLer, PaginaLidos, PaginaBbt):
-            #coloca o frame no container
+            # coloca o frame no container
             frame = F(container, self)
-            #define que o frame será o atual
+            # define que o frame será o atual
             self.frames[F] = frame
-            #localização do frame
+            # localização do frame
             frame.grid(row=0, column=0, sticky='nsew')
-        #exibe o frame na janela inicial do programa
+        # exibe o frame na janela inicial do programa
         self.show_frame(PaginaPrincipal)
 
-    #função para mostrar cada frame
+    # função para mostrar cada frame
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
 
-#classe para exibir a janela incial do programa
+
+# classe para exibir a janela incial do programa
 class PaginaPrincipal(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -628,7 +657,8 @@ class PaginaPrincipal(tk.Frame):
         label = tk.Label(self, text='BBT do Rafael Said', font=FONTE)
         label.pack(pady=10, padx=10)
 
-        btn_livros_ler = tk.Button(self, text='Livros que quero ler', command= lambda: controller.show_frame(PaginaListaLer))
+        btn_livros_ler = tk.Button(self, text='Livros que quero ler',
+                                   command=lambda: controller.show_frame(PaginaListaLer))
         btn_livros_ler.pack()
 
         btn_livros_lidos = tk.Button(self, text='Livros lidos', command=lambda: controller.show_frame(PaginaLidos))
@@ -638,7 +668,7 @@ class PaginaPrincipal(tk.Frame):
         btn_minha_bbt.pack()
 
 
-#classe da lista de livros a serem lidos
+# classe da lista de livros a serem lidos
 class PaginaListaLer(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -658,7 +688,7 @@ class PaginaListaLer(tk.Frame):
         btn_voltar.pack()
 
 
-#classe da lista de livros lidos, separadas por ano
+# classe da lista de livros lidos, separadas por ano
 class PaginaLidos(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -675,7 +705,7 @@ class PaginaLidos(tk.Frame):
         btn_voltar.pack()
 
 
-#classe de catalogação dos livros que tenho em casa
+# classe de catalogação dos livros que tenho em casa
 class PaginaBbt(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, parent)
@@ -690,6 +720,7 @@ class PaginaBbt(tk.Frame):
 
         btn_voltar = tk.Button(self, text='Voltar', command=lambda: controller.show_frame(PaginaPrincipal))
         btn_voltar.pack()
+
 
 app = BbtRafa()
 app.mainloop()
