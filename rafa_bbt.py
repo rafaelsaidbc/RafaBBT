@@ -537,35 +537,50 @@ def inserir_livros_estante():
     limpar_campos()
 
 
+# cria a função livros_na_estante, para totalizar o número de livros cadastrados na estante de livros, inicia como zero
+def livros_na_estante():
+    global total_livros_estante
+    total_livros_estante = 0
+    # pega cada elemento (key) do Firebase
+    for elemento in db.reference().child('minhaBBT').get().items():
+        # para cada referência de livro cadastrada no Firebase aumenta em 1 o   total de livros
+        total_livros_estante += 1
+    return total_livros_estante
+
 # função para adicionar livros da minha estante no Firebase
 def formulario_adicionar_livros_estante():
+    # excuta a função para saber o número de livros na estante de livros
+    livros_na_estante()
+
     janela_cadastro_livros_estante = Toplevel()
-    janela_cadastro_livros_estante.title('Cadastro de livros lidos')
+    janela_cadastro_livros_estante.title('Cadastro de livros da minha estante')
     Label(janela_cadastro_livros_estante, text='Título').grid(row=0)
     Label(janela_cadastro_livros_estante, text='Autor').grid(row=1)
     Label(janela_cadastro_livros_estante, text='Páginas').grid(row=2)
     Label(janela_cadastro_livros_estante, text='Cidade da editora').grid(row=3)
     Label(janela_cadastro_livros_estante, text='Editora').grid(row=4)
     Label(janela_cadastro_livros_estante, text='Ano da edição').grid(row=5)
+    Label(janela_cadastro_livros_estante, text='Total de livros na estante: ' + str(total_livros_estante)).grid(row=6)
 
     global titulo_estante
-    titulo_estante = Entry(janela_cadastro_livros_estante)
+    titulo_estante = Entry(janela_cadastro_livros_estante, width=40)
     titulo_estante.grid(row=0, column=1)
     global autor_estante
-    autor_estante = Entry(janela_cadastro_livros_estante)
+    autor_estante = Entry(janela_cadastro_livros_estante, width=40)
     autor_estante.grid(row=1, column=1)
     global paginas_estante
-    paginas_estante = Entry(janela_cadastro_livros_estante)
+    paginas_estante = Entry(janela_cadastro_livros_estante, width=40)
     paginas_estante.grid(row=2, column=1)
     global cidade_editora_estante
-    cidade_editora_estante = Entry(janela_cadastro_livros_estante)
+    cidade_editora_estante = Entry(janela_cadastro_livros_estante, width=40)
     cidade_editora_estante.grid(row=3, column=1)
     global editora_estante
-    editora_estante = Entry(janela_cadastro_livros_estante)
+    editora_estante = Entry(janela_cadastro_livros_estante, width=40)
     editora_estante.grid(row=4, column=1)
     global ano_edicao_estante
-    ano_edicao_estante = Entry(janela_cadastro_livros_estante)
+    ano_edicao_estante = Entry(janela_cadastro_livros_estante, width=40)
     ano_edicao_estante.grid(row=5, column=1)
+
 
     btn_adicionar = Button(janela_cadastro_livros_estante, text='Inserir', command=inserir_livros_estante).grid(row=7,
                                                                                                                 column=1,
@@ -585,8 +600,14 @@ def exibir_lista_estante():
     janela_livros_estante.title('LISTA DE LIVROS QUE TENHO EM CASA')
     # cria a variável t do tipo scrolledtext para inserir os dados
     t = scrolledtext.ScrolledText(janela_livros_estante)
+    # cria a variável total_livros_estante, para totalizar o número de livros cadastrados na estante de livros, define como global para ser acessada por outras funções
+    global total_livros_estante
+    # inicia como zero
+    total_livros_estante = 0
     # pega cada elemento (key) do Firebase
     for elemento in livros_estante:
+        # para cada referência de livro cadastrada no Firebase aumenta em 1 o total de livros
+        total_livros_estante += 1
         # pega a posição [1] do elemento (que se refere aos dados do livro (autor, título, editora, etc.), a posição [0] se refere à key do Firebase
         dados = elemento[1]
         # para cada chave, valor do dicionário dos dados
